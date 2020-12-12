@@ -22,7 +22,7 @@ class WordChain(QWidget):
         self.gameWindow = QTextEdit(); self.gameWindow.setReadOnly(True); self.gameWindow.setFontPointSize(12); self.gameWindow.setText(COLOR_BLUE + "#끝말잇기 게임");
         self.settingGame = QHBoxLayout()
         self.dueumRule = QCheckBox()
-        self.oneKillWord = QCheckBox()
+        self.verbRule = QCheckBox()
         self.difficultyBox = QComboBox(); self.difficultyBox.addItems(difficultyName)
         self.newGameStartButton = QPushButton("게임 시작"); self.newGameStartButton.clicked.connect(self.startButton)
         self.writeAnswer = QLineEdit(); self.writeAnswer.returnPressed.connect(self.returnEnterEvent)
@@ -38,7 +38,7 @@ class WordChain(QWidget):
         self.settingGame.addStretch(1)
         self.settingGame.addWidget(self.dueumRule)
         self.settingGame.addWidget(QLabel("두음 법칙 허용"))
-        self.settingGame.addWidget(self.oneKillWord)
+        self.settingGame.addWidget(self.verbRule)
         self.settingGame.addWidget(QLabel("동사 금지"))
         self.settingGame.addWidget(self.difficultyBox)
         self.settingGame.addWidget(self.newGameStartButton)
@@ -61,10 +61,12 @@ class WordChain(QWidget):
             self.gameWindow.append(COLOR_BLUE + "#두 글자 이상을 입력하세요")
         elif (self.lastWord != word[0] and dueumWord == ''):
             self.gameWindow.append(COLOR_BLUE + "#끝 말을 이어야 합니다!")
-        elif (dueumWord != '' and dueumWord != word[0]):
+        elif (dueumWord != '' and (dueumWord != word[0] or self.lastWord != word[0])):
             self.gameWindow.append(COLOR_BLUE + "#끝 말을 이어야 합니다!")
         elif(word in self.wordStack):
             self.gameWindow.append(COLOR_BLUE + "#같은 단어가 중복 되었습니다.")
+        elif(self.verbRule.isChecked() and word[-1] == '다'):
+            self.gameWindow.append(COLOR_BLUE + "#동사 금지 룰***")
         else:
             try:
                 with open(f"word/{word[0]}.txt", 'r') as f:
@@ -95,6 +97,7 @@ class WordChain(QWidget):
         self.wordStack = []
         self.turnSetting()
         self.dueumRule.setEnabled(True)
+        self.verbRule.setEnabled(True)
         self.difficultyBox.setEnabled(True)
 
     def enemyTurn(self, word):
@@ -102,10 +105,14 @@ class WordChain(QWidget):
             while(True):
                 line = random.choice(file.readlines()).replace("\n", "")
                 if(not line in self.wordStack):
-                    break
+                    if(self.verbRule.isChecked() and line[-1] == '다'):
+                        continue
+                    else:
+                        break
             self.lastWord = line[-1]
             self.gameWindow.append(COLOR_RED + "적 : " + line)
             self.wordStack.append(line)
+
 
     def turnSetting(self):
         self.curruntTurn = 1
@@ -119,6 +126,7 @@ class WordChain(QWidget):
             self.gameWindow.setText(COLOR_BLUE + "#게임을 시작합니다")
             self.turnSetting()
             self.dueumRule.setEnabled(False)
+            self.verbRule.setEnabled(False)
             self.difficultyBox.setEnabled(False)
             self.enemyTurn(startWord[random.randint(0, 13)])
         else:
@@ -132,5 +140,3 @@ if __name__ == "__main__":
     game = WordChain()
     game.show()
     sys.exit(app.exec_())
-
-# 추가 해야할 기능 게임 룰 하나 더 추가
