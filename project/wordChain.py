@@ -1,8 +1,10 @@
 import sys
+import os
 import random
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from names import *
+from wordFunction import wordCreate
 
 
 class WordChain(QWidget):
@@ -19,7 +21,7 @@ class WordChain(QWidget):
         #요소 선언
         self.mainLayout = QVBoxLayout()
         self.statusLine = QHBoxLayout()
-        self.gameWindow = QTextEdit(); self.gameWindow.setReadOnly(True); self.gameWindow.setFontPointSize(12); self.gameWindow.setText(COLOR_BLUE + "#끝말잇기 게임");
+        self.gameWindow = QTextEdit(); self.gameWindow.setReadOnly(True); self.gameWindow.setFontPointSize(12); self.gameWindow.setText(COLOR_BLUE + "#끝말잇기 게임"); self.gameWindow.append(COLOR_BLUE + "#첫 실행시 단어 분류 작업을 합니다")
         self.settingGame = QHBoxLayout()
         self.dueumRule = QCheckBox()
         self.verbRule = QCheckBox()
@@ -69,7 +71,7 @@ class WordChain(QWidget):
             self.gameWindow.append(COLOR_BLUE + "#동사 금지 룰***")
         else:
             try:
-                with open(f"word/{word[0]}.txt", 'r') as f:
+                with open(f"wordAll/{word[0]}.txt", 'r') as f:
                     check = f.readlines()
                     if(word+'\n' in check):
                         self.gameWindow.append("너 : " + word)
@@ -101,7 +103,7 @@ class WordChain(QWidget):
         self.difficultyBox.setEnabled(True)
 
     def enemyTurn(self, word):
-        with open(f"word/{word}.txt", 'r') as file:
+        with open(f"wordAll/{word}.txt", 'r') as file:
             while(True):
                 line = random.choice(file.readlines()).replace("\n", "")
                 if(not line in self.wordStack):
@@ -120,6 +122,8 @@ class WordChain(QWidget):
         self.backText.setText(TEXTSIZE + f" / {displayDiff[self.difficultyBox.currentText()]}" + " 턴")
 
     def startButton(self): # 시작 버튼을 눌렀을때 반응
+        if (not os.path.isdir("wordAll")):
+            wordCreate()
         if (self.startStop == True):
             self.startStop = False
             self.newGameStartButton.setText("항복 하기")
@@ -136,6 +140,7 @@ class WordChain(QWidget):
 
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     game = WordChain()
     game.show()
