@@ -63,7 +63,7 @@ class WordChain(QWidget):
             self.gameWindow.append(COLOR_BLUE + "#두 글자 이상을 입력하세요")
         elif (self.lastWord != word[0] and dueumWord == ''):
             self.gameWindow.append(COLOR_BLUE + "#끝 말을 이어야 합니다!")
-        elif (dueumWord != '' and (dueumWord != word[0] or self.lastWord != word[0])):
+        elif (dueumWord != '' and (dueumWord != word[0] and self.lastWord != word[0])):
             self.gameWindow.append(COLOR_BLUE + "#끝 말을 이어야 합니다!")
         elif(word in self.wordStack):
             self.gameWindow.append(COLOR_BLUE + "#같은 단어가 중복 되었습니다.")
@@ -89,8 +89,7 @@ class WordChain(QWidget):
                 self.wordStack.append(word)
                 self.gameWindow.append(COLOR_BLUE + "#당신의 승리 입니다")
                 self.gameEnd()
-            except:
-                self.gameWindow.append(COLOR_BLUE + "#잘못 된 값이 들어 갔습니다")
+
 
 
     def gameEnd(self):
@@ -98,22 +97,22 @@ class WordChain(QWidget):
         self.newGameStartButton.setText("게임 시작")
         self.wordStack = []
         self.turnSetting()
+        self.writeAnswer.clear()
         self.dueumRule.setEnabled(True)
         self.verbRule.setEnabled(True)
         self.difficultyBox.setEnabled(True)
 
     def enemyTurn(self, word):
         with open(f"wordAll/{word}.txt", 'r') as file:
-            while(True):
-                line = random.choice(file.readlines()).replace("\n", "")
-                if(not line in self.wordStack):
-                    if(self.verbRule.isChecked() and line[-1] == '다'):
-                        continue
-                    else:
-                        break
-            self.lastWord = line[-1]
-            self.gameWindow.append(COLOR_RED + "적 : " + line)
-            self.wordStack.append(line)
+            line = random.choice(file.readlines()).replace("\n", "")
+            if(not line in self.wordStack):
+                if(self.verbRule.isChecked() and line[-1] == '다'):
+                    self.enemyTurn(word)
+                else:
+                    self.lastWord = line[-1]
+                    self.gameWindow.append(COLOR_RED + "적 : " + line)
+                    self.wordStack.append(line)
+
 
 
     def turnSetting(self):
